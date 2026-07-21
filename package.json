@@ -4,7 +4,7 @@
   "description": "Stripe-CLI-style developer toolkit for the Monnify payment gateway (sandbox only)",
   "type": "module",
   "bin": {
-    "monnify": "./dist/cli.js"
+    "monnify": "dist/cli.js"
   },
   "files": [
     "dist"
