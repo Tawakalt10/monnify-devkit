@@ -12,6 +12,7 @@ import { txCommand } from "./commands/tx.js";
 import { listenCommand } from "./commands/listen.js";
 import { eventsCommand } from "./commands/events.js";
 import { payCommand } from "./commands/pay.js";
+import { initCommand } from "./commands/init.js";
 
 const program = new Command("monnify")
   .description("Developer toolkit for the Monnify payment gateway — sandbox only")
@@ -20,6 +21,7 @@ const program = new Command("monnify")
 program.addCommand(loginCommand);
 program.addCommand(logoutCommand);
 program.addCommand(whoamiCommand);
+program.addCommand(initCommand);
 program.addCommand(banksCommand);
 program.addCommand(txCommand);
 program.addCommand(payCommand);
