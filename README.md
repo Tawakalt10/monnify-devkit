@@ -3,7 +3,11 @@
 [![npm](https://img.shields.io/npm/v/monnify-devkit)](https://www.npmjs.com/package/monnify-devkit)
 [![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
-> The Stripe-CLI experience for [Monnify](https://monnify.com) — scaffold, test, and debug payment integrations from your terminal. **Sandbox only, by design.**
+The missing developer toolkit for Monnify : scaffold, test, and debug payment integrations from your terminal. Sandbox only, by design.
+
+
+
+
 
 Built for the APIConf Lagos 2026 × Monnify Developer Challenge.
 
