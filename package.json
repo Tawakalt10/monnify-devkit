@@ -1,6 +1,6 @@
 {
   "name": "monnify-devkit",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Developer CLI for the Monnify payment gateway: test payments, trigger signed webhooks, and debug signatures from your terminal (sandbox only)",
   "type": "module",
   "bin": {
