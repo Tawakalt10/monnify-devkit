@@ -1,6 +1,13 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import pc from "picocolors";
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
+const pkg = JSON.parse(
+  readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "package.json"), "utf8")
+);
 import { loginCommand } from "./commands/login.js";
 import { logoutCommand } from "./commands/logout.js";
 import { whoamiCommand } from "./commands/whoami.js";
@@ -20,7 +27,7 @@ import { transferCommand, transferStatusCommand, balanceCommand } from "./comman
 
 const program = new Command("monnify")
   .description("Developer toolkit for the Monnify payment gateway — sandbox only")
-  .version("0.1.0");
+  .version(pkg.version);
 
 program.addCommand(loginCommand);
 program.addCommand(logoutCommand);
