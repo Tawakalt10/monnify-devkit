@@ -57,12 +57,27 @@ describe("diagnoseMismatch", () => {
 });
 
 describe("buildPayload", () => {
-  it("builds every advertised event type", () => {
+  it("builds every advertised event type with a valid eventType and eventData", () => {
+    expect(EVENT_TYPES.length).toBeGreaterThanOrEqual(13);
     for (const event of EVENT_TYPES) {
       const p = buildPayload(event);
-      expect(p.eventType).toBe(event);
+      // OFFLINE_PAYMENT intentionally emits eventType SUCCESSFUL_TRANSACTION (per docs)
+      const expectedType = event === "OFFLINE_PAYMENT" ? "SUCCESSFUL_TRANSACTION" : event;
+      expect(p.eventType).toBe(expectedType);
       expect(p.eventData).toBeTruthy();
     }
+  });
+
+  it("every payload signs and verifies round-trip", () => {
+    for (const event of EVENT_TYPES) {
+      const body = JSON.stringify(buildPayload(event));
+      const sig = computeSignature(body, SECRET);
+      expect(verifySignature(body, SECRET, sig)).toBe(true);
+    }
+  });
+
+  it("rejects unknown event types with a helpful error", () => {
+    expect(() => buildPayload("NOT_A_REAL_EVENT")).toThrow(/trigger --list/);
   });
 
   it("applies overrides to eventData", () => {

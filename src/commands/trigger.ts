@@ -1,28 +1,38 @@
 import { Command } from "commander";
 import pc from "picocolors";
-import { buildPayload, EVENT_TYPES, type EventType } from "../webhooks/payloads.js";
+import { buildPayload, EVENT_TYPES, describeEvents } from "../webhooks/payloads.js";
 import { computeSignature } from "../webhooks/sign.js";
 import { appendEvent } from "../store/events.js";
 import { loadConfig } from "../config.js";
 
 export const triggerCommand = new Command("trigger")
   .description("Fire a simulated, correctly-signed Monnify webhook at your local handler")
-  .argument("<event>", `Event type: ${EVENT_TYPES.join(", ")}`)
-  .requiredOption("--forward-to <url>", "Your webhook handler URL, e.g. http://localhost:3000/webhooks")
+  .argument("[event]", "Event type (see --list)")
+  .option("--list", "Show all supported event types")
+  .option("--forward-to <url>", "Your webhook handler URL, e.g. http://localhost:3000/webhooks")
   .option("--amount <naira>", "Amount in Naira", parseFloat)
   .option("--reference <ref>", "Transaction reference")
   .option("--override <k=v...>", "Override eventData fields", collectOverrides, {})
-  .action(async (event: string, opts: {
-    forwardTo: string;
+  .action(async (event: string | undefined, opts: {
+    list?: boolean;
+    forwardTo?: string;
     amount?: number;
     reference?: string;
     override: Record<string, unknown>;
   }) => {
-    if (!EVENT_TYPES.includes(event as EventType)) {
-      throw new Error(`Unknown event "${event}". Valid: ${EVENT_TYPES.join(", ")}`);
+    if (opts.list || !event) {
+      console.log(pc.bold(`Supported event types (${EVENT_TYPES.length}):\n`));
+      for (const { name, description } of describeEvents()) {
+        console.log(`  ${pc.cyan(name.padEnd(26))} ${pc.dim(description)}`);
+      }
+      console.log(pc.dim(`\nUsage: monnify trigger <event> --forward-to <url> [--amount N] [--override k=v]`));
+      return;
+    }
+    if (!opts.forwardTo) {
+      throw new Error("--forward-to <url> is required. Where should the webhook be sent?");
     }
     const config = loadConfig();
-    const payload = buildPayload(event as EventType, {
+    const payload = buildPayload(event, {
       amount: opts.amount,
       reference: opts.reference,
       overrides: opts.override,

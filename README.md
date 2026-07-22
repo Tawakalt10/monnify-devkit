@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/monnify-devkit)](https://www.npmjs.com/package/monnify-devkit)
 [![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
-The missing developer toolkit for Monnify : scaffold, test, and debug payment integrations from your terminal. Sandbox only, by design.
+The missing developer toolkit for Monnify: scaffold, test, and debug payment integrations from your terminal. Sandbox only, by design.
 
 
 
@@ -28,11 +28,11 @@ Or run without installing: `npx monnify-devkit <command>`
 ## Quickstart
 
 ```bash
-monnify login     # interactive — secret key is masked, never in shell history
+monnify login     # prompts for your keys; the secret is masked, never in shell history
 monnify banks     # confirm everything works
 ```
 
-Fire a correctly-signed fake payment webhook at your local handler — no deploy, no checkout, no waiting:
+Fire a correctly signed fake payment webhook at your local handler. No deploy, no checkout, no waiting:
 
 ```bash
 monnify trigger SUCCESSFUL_TRANSACTION --forward-to http://localhost:3000/webhooks --amount 5000
@@ -53,21 +53,30 @@ MONNIFY_SECRET_KEY=<your sandbox secret> npm start
 | `login` / `logout` / `whoami` | Manage sandbox credentials (stored with 600 permissions, verified live) |
 | `init [dir]` | Scaffold an Express app with a signature-verifying webhook handler |
 | `banks` | List supported banks and codes |
+| `testcards` | Show sandbox test cards (no-OTP, OTP, 3DS, failing) without leaving the terminal |
+| `resolve <account> <bank-code>` | Look up an account name before sending money to it |
+| `explain <error or code>` | Look up any Monnify error (D05, R2, "duplicate reference") and get the meaning plus the fix, from the official error reference |
+| `transfer <amount> --to --bank --source` | Sandbox payout with a name-checked destination and a confirmation prompt |
+| `transfer-status <ref>` / `balance <wallet>` | Track transfers and check wallet balance |
 | `tx list` / `tx get <ref>` | Query sandbox transactions |
 | `pay <amount>` | Create a real sandbox payment, get the checkout URL |
 | `trigger <event> --forward-to <url>` | Send a simulated, correctly-signed webhook to your handler |
-| `listen [--forward-to <url>]` | Local receiver: print events, verify signatures, forward |
-| `replay [--last N \| --id <id>]` | Re-send stored events — test your idempotency handling |
+| `listen [--forward-to <url>] [--tunnel] [--verbose]` | Local receiver: print events, verify signatures, forward. `--tunnel` exposes it publicly so real sandbox webhooks reach your laptop (works best with [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) installed; falls back to localtunnel); `--verbose` prints full payloads |
+| `replay [--last N \| --id <id>]` | Re-send stored events to test your idempotency handling |
 | `verify <file> [--against <sig>]` | Debug signature mismatches, with likely-cause diagnosis |
 | `events` | Show the local event delivery log |
 
-Supported trigger events: `SUCCESSFUL_TRANSACTION`, `FAILED_TRANSACTION`, `SUCCESSFUL_DISBURSEMENT`, `FAILED_DISBURSEMENT`, `SETTLEMENT`. Override any payload field with `--override key=value`.
+Most read commands accept `--json` for machine-readable output, and every command documents its full flags via `monnify <command> --help`.
+
+`trigger` supports all 13 event types Monnify documents: collections, rejected/underpayment, offline payments, disbursements (success, failed, reversed), refunds, settlements, mandate updates, wallet activity, and low-balance alerts. Run `monnify trigger --list` for the catalog, and override any payload field with `--override key=value`.
 
 ## How signing works
 
-Monnify signs webhooks with **HMAC-SHA512 over the raw request body bytes**, hex-encoded, in the `monnify-signature` header. The most common integration bug is verifying against a *re-serialized* body instead of the raw bytes — `monnify verify` detects exactly that case and tells you.
+Monnify signs webhooks with **HMAC-SHA512 over the raw request body bytes**, hex-encoded, in the `monnify-signature` header. The most common integration bug is verifying against a *re-serialized* body instead of the raw bytes. `monnify verify` detects exactly that case and tells you.
 
 Every simulated webhook this tool sends is signed with your own sandbox secret using the same scheme, so your handler's verification code is exercised for real.
+
+Payload shapes follow [Monnify's webhook event docs](https://developers.monnify.com/docs/webhooks/event-types), and the signing scheme plus `SUCCESSFUL_TRANSACTION` shape have been validated against a real captured sandbox webhook (delivered via `listen --tunnel`, signature verified). Real card-payment events carry two extra fields, `cardDetails` (masked PAN, bin, expiry) and `paymentScope`. Simulate them with `--override` if your handler depends on them.
 
 ## Safety
 
@@ -79,14 +88,14 @@ Every simulated webhook this tool sends is signed with your own sandbox secret u
 
 ```bash
 npm install
-npm test            # vitest — signing golden vectors, payload builders
+npm test            # vitest: signing golden vectors, payload builders
 npm run typecheck
 npm run dev -- <command>
 ```
 
 ## Roadmap
 
-Tunnel integration for `listen` (receive real sandbox webhooks locally), more event types, refund and direct-debit commands once enabled in sandbox by default.
+Refund and direct-debit commands, bulk transfers, bills payment, production mode behind an explicit opt-in flag.
 
 ## Team
 
